@@ -2,12 +2,16 @@ package com.justinpfeifler.weather
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.AsyncTask
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.TextView
+import java.net.HttpURLConnection
+import java.net.URL
 
 internal class WeatherArrayAdapter
 (
@@ -28,8 +32,7 @@ internal class WeatherArrayAdapter
     }
 
     // create the custom view for the ListViews
-    override fun getView(
-        position: Int, convertView: View?, parent: ViewGroup) : View {
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup) : View {
         var convertView = convertView
         // get the weather object at this position
         var day = getItem(position)
@@ -59,5 +62,40 @@ internal class WeatherArrayAdapter
         }
 
         // populate views with weather data
-    })
+        viewHolder.dayTextView!!.text = context.getString(R.string.day_description, day.dayOfWeek, day.description)
+        viewHolder.lowTextView!!.text = context.getString(R.string.low_temp, day.minTemp)
+        viewHolder.humidityTextView!!.text = context.getString(R.string.humidity, day.humidity)
+
+        return convertView
+    }
+
+    // load weather condition icons in seperate thread
+    private inner class LoadImage (private val imageView: ImageView?) : AsyncTask<String, Void, Bitmap>() {
+        override fun doInBackground(vararg params: String): Bitmap? {
+            var bitmap: Bitmap? = null
+            var connection: HttpURLConnection? = null
+
+            try {
+                val url = URL(params[0])
+                connection = url.openConnection() as HttpURLConnection
+
+                try {
+                    connection.inputStream.use {
+                        inputStream ->
+                        bitmap = BitmapFactory.decodeStream(inputStream)
+                        bitmaps.put(params[0], bitmap!!)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            return bitmap
+        }
+
+        override fun onPostExecute(bitmap: Bitmap) {
+            imageView?.setImageBitmap(bitmap)
+        }
+    }
 }
