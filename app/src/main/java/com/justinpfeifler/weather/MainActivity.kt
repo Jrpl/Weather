@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         weatherArrayAdapter = WeatherArrayAdapter(this, weatherList)
         weatherListView!!.adapter = weatherArrayAdapter
 
-        fab.setOnClickListener {view ->
+        fab.setOnClickListener { view ->
             val locationEditText = findViewById<View>(R.id.locationEditText) as EditText
             val url = createURL(locationEditText.text.toString())
 
@@ -59,6 +59,7 @@ class MainActivity : AppCompatActivity() {
 
         try {
             val urlString = url + URLEncoder.encode(city, "UTF-8") + "&units=imperial&cnt=16&APPID=" + key
+            return URL(urlString)
         } catch (e: Exception) {
             e.printStackTrace()
         }
